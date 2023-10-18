@@ -15,8 +15,9 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("An error occurred loading the .env file")
+		log.Fatalf("An error occurred loading the .env file; %v\n", err)
 	}
+
 	clustersContent, err := os.ReadFile("./clusters.json")
 	if err != nil {
 		log.Fatal(err)
