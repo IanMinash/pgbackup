@@ -1,8 +1,8 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("An error occurred loading the .env file")
@@ -27,14 +29,17 @@ func main() {
 	}
 
 	for _, cluster := range clusters {
-
-		err = pgbackup.BackupCluster(&cluster)
+		archivePath, err := pgbackup.BackupCluster(ctx, &cluster)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		info, err := pgbackup.UploadArchive(ctx, archivePath)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		log.Printf("Version %s of %s has been uploaded!", info.VersionID, info.Key)
 	}
 
-	backupDir := os.Getenv("BACKUP_DIR")
-
-	fmt.Printf("Backups created successfully, check %s\n", backupDir)
+	log.Printf("Backups created and uploaded successfully")
 }
