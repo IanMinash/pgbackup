@@ -25,7 +25,7 @@ func GetS3Client() *minio.Client {
 		Secure: true,
 	})
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 
 	return minioClient

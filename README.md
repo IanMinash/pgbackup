@@ -33,3 +33,10 @@ This package assumes that the `postgresql-client` package is intalled as it reli
     S3_SECRET_KEY=''
     S3_BUCKET_NAME=''
     ```
+
+## Running the Docker container
+To run the Docker container, use the following command:
+
+```shell
+docker run -v /path/to/my/.env:/root/.env -v /path/to/my/clusters.json:/root/clusters.json --network=host ghcr.io/ianminash/pgbackup
+```
