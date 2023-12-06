@@ -13,10 +13,12 @@ import (
 
 var directory string
 var archiveFile string
+var retainDays uint16
 
 func init() {
 	uploadCmd.Flags().StringVarP(&directory, "directory", "d", "./backups", "Directory containing cluster archives to upload")
 	uploadCmd.Flags().StringVarP(&archiveFile, "archive-file", "f", "", "A cluster archive to upload")
+	uploadCmd.Flags().Uint16VarP(&retainDays, "retain-days", "p", 7, "The number of days this archive should be retained for.")
 	rootCmd.AddCommand(uploadCmd)
 }
 
@@ -26,7 +28,7 @@ var uploadCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		if archiveFile != "" {
-			info, err := pgbackup.UploadArchive(ctx, archiveFile)
+			info, err := pgbackup.UploadArchive(ctx, archiveFile, retainDays)
 			if err != nil {
 				log.Printf("Error occurred while uploading archive %s: %v\n", archiveFile, err)
 				return
@@ -51,7 +53,7 @@ var uploadCmd = &cobra.Command{
 					go func(archivePath string) {
 						defer wg.Done()
 
-						info, err := pgbackup.UploadArchive(ctx, archivePath)
+						info, err := pgbackup.UploadArchive(ctx, archivePath, retainDays)
 						if err != nil {
 							log.Printf("Error occurred while uploading archive %s: %v\n", archivePath, err)
 							return

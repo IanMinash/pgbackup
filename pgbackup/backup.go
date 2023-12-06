@@ -14,30 +14,31 @@ type ClusterConfig struct {
 	Port        uint16
 	Username    string
 	Password    string
+	RetainDays  uint16
 }
 
-// BackupCluster runs pg_basebackup on a specified cluster, zips it and
+// BackupCluster runs pg_basebackup on a specified cluster and
 // returns the path of the compressed archive.
 func BackupCluster(ctx context.Context, config *ClusterConfig) (string, error) {
 	backupDir := os.Getenv("BACKUP_DIR")
 	clusterBackupDir := fmt.Sprintf("%s/%s", backupDir, config.ClusterName)
-	clusterBackupArchive := fmt.Sprintf("%s.zip", clusterBackupDir)
+	clusterBackupArchive := fmt.Sprintf("%s.gz", clusterBackupDir)
 
 	// Do the backup using pg_basebackup
-	backupCmd := exec.CommandContext(ctx, "pg_basebackup", "-h", config.Host, "-p", fmt.Sprint(config.Port), "-U", config.Username, "-D", clusterBackupDir, "-w")
+	backupCmd := exec.CommandContext(ctx, "pg_basebackup", "-z", "-F", "t", "-h", config.Host, "-p", fmt.Sprint(config.Port), "-U", config.Username, "-D", clusterBackupDir, "-w")
 	backupCmd.Env = append(backupCmd.Env, fmt.Sprintf("PGPASSWORD=%s", config.Password))
 	err := backupCmd.Run()
 	if err != nil {
 		return "", err
 	}
 
-	// Backup was succesfully created under backupDir/clusterName
-	// Now we want to zip it into a single archive
-	archiveCmd := exec.CommandContext(ctx, "tar", "-czf", clusterBackupArchive, clusterBackupDir)
+	// Compress into single archive
+	archiveCmd := exec.CommandContext(ctx, "tar", "-cf", clusterBackupArchive, "-C", clusterBackupDir, ".")
 	err = archiveCmd.Run()
 	if err != nil {
 		return "", err
 	}
+
 	log.Printf("Archive for cluster %s has been successfully created.\n", config.ClusterName)
 
 	// Clean  up, by deleting the original backup directory
@@ -46,5 +47,6 @@ func BackupCluster(ctx context.Context, config *ClusterConfig) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return clusterBackupArchive, nil
 }

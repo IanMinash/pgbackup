@@ -11,8 +11,6 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-const RetainDays = 7
-
 // GetS3Client returns a minio.Client that has been preconfigured with
 // settings from the environment.
 func GetS3Client() *minio.Client {
@@ -32,7 +30,7 @@ func GetS3Client() *minio.Client {
 }
 
 // UploadArchive takes in a filePath and uploads it to an s# bucket
-func UploadArchive(ctx context.Context, filePath string) (minio.UploadInfo, error) {
+func UploadArchive(ctx context.Context, filePath string, retainDays uint16) (minio.UploadInfo, error) {
 	s3Client := GetS3Client()
 	bucketName := os.Getenv("S3_BUCKET_NAME")
 	objectName := strings.Split(filePath, "/")[len(strings.Split(filePath, "/"))-1]
@@ -40,7 +38,7 @@ func UploadArchive(ctx context.Context, filePath string) (minio.UploadInfo, erro
 		minio.PutObjectOptions{
 			ContentType:     "application/zip",
 			Mode:            minio.Governance,
-			RetainUntilDate: time.Now().Add(time.Duration(RetainDays * 24 * time.Hour)),
+			RetainUntilDate: time.Now().Add(time.Duration(retainDays) * 24 * time.Hour),
 		})
 	if err != nil {
 		return info, err

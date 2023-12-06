@@ -45,7 +45,7 @@ var rootCmd = &cobra.Command{
 					return
 				}
 
-				info, err := pgbackup.UploadArchive(ctx, archivePath)
+				info, err := pgbackup.UploadArchive(ctx, archivePath, cl.RetainDays)
 				if err != nil {
 					log.Printf("Error occurred while uploading backup for cluster %s: %v\n", cl.ClusterName, err)
 					return
