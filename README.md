@@ -18,7 +18,8 @@ This package assumes that the `postgresql-client` package is intalled as it reli
             "Host": "",
             "Port": 5432,
             "Password": "",
-            "Username": ""
+            "Username": "",
+            "RetainDays": 1
         },
         ...
     ]
